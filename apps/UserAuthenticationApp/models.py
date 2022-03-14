@@ -3,61 +3,59 @@ from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from utils.validate_email import Validate_email as email_validation
 
+class UserAccountManager(BaseUserManager,models.Manager):
+    def _create_user(self, email, password, first_name, last_name, **extra_fields):
+        if not email_validation.isvalidEmail(email):
+            raise ValueError("invalid email")
 
-class UserAccountManager(BaseUserManager):
-    def _create_user(self, email, password, **extra_fields):
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        
+        user = self.model(email=email,first_name=first_name,last_name=last_name,**extra_fields)
         user.set_password(password)
         user.save()
         return user
 
-    def create_user(self, email, password, **extra_fields):
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
-        extra_fields.setdefault('is_active', True)
-        return self._create_user(email, password, **extra_fields)
+    def create_user(self, email, password, first_name, last_name, **extra_fields):
+        extra_fields.setdefault("is_staff", False)
+        extra_fields.setdefault("is_superuser", False)
+        extra_fields.setdefault("is_active", True)
+        return self._create_user(email, password,first_name,last_name, **extra_fields)
 
     def create_staff_user(self, email, password, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', False)
-        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", False)
+        extra_fields.setdefault("is_active", True)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
         return self._create_user(email, password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    first_name = models.CharField(_('First name'), max_length=30, blank=True)
-    last_name = models.CharField(_('Last name'), max_length=30, blank=True)
-    email = models.EmailField(_('Email address'), unique=True)
+    email = models.EmailField(_("Email address"), unique=True)
+    first_name = models.CharField(_("First name"), max_length=30, blank=True)
+    last_name = models.CharField(_("Last name"), max_length=30, blank=True)
     is_staff = models.BooleanField(
-        _('staff status'),
+        _("staff status"),
         default=False,
-        help_text=_(
-            'Designates whether the user can log into this admin site.'),
+        help_text=_("Designates whether the user can log into this admin site."),
     )
     is_active = models.BooleanField(
-        _('active'),
+        _("active"),
         default=False,
-        help_text=_(
-            'Designates whether this user should be treated as active.'),
+        help_text=_("Designates whether this user should be treated as active."),
     )
-    date_joined = models.DateTimeField(_('Date joined'), default=timezone.now)
+    date_joined = models.DateTimeField(_("Date joined"), default=timezone.now)
 
-    objects = UserAccountManager()
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name']
-
-    class Meta:
-        verbose_name = _('User')
-        verbose_name_plural = _('User')
-        ordering = ('-pk', )
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["first_name"]
+    
+    objects=UserAccountManager()
 
     def __str__(self):
         return self.email
