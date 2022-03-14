@@ -1,1 +1,1 @@
-# django-graphql-user--email-authentication
+# django-graphql-user-email-authentication
